@@ -307,7 +307,7 @@
     }
 
     // ── Validate & send ──
-    function sendToWhatsapp() {
+    async function sendToWhatsapp() {
         let valid = true;
 
         // Reset errors
@@ -388,11 +388,79 @@
         // Update progress
         document.getElementById('step3').classList.add('done');
         document.getElementById('step4').classList.add('active');
-        showToast('✅ Redirection vers WhatsApp…', 'success');
+
+        // ── Kaiser's receiving WhatsApp number ──
+        const KAISER_WA_DIGITS  = '2250152689191';
+        const KAISER_WA_DISPLAY = '+225 01 52 68 91 91';
+
+        const photoFiles = Array.from(document.getElementById('kitchenPhoto').files);
+
+        // WhatsApp's "wa.me" link can only ever pre-fill TEXT — it has no
+        // mechanism to attach files to a message. The only way a browser can
+        // hand actual photo files to WhatsApp is the native Share API, which
+        // opens the device's share sheet (the customer still has to tap
+        // WhatsApp, then pick/search the Kaiser contact themselves — no
+        // website can pre-select a recipient for a file share).
+        if (photoFiles.length > 0 && navigator.canShare && navigator.share &&
+            navigator.canShare({ files: photoFiles })) {
+            try {
+                await navigator.share({
+                    files: photoFiles,
+                    text: buildPlainMessage() +
+                          `\n\n👉 Choisissez WhatsApp, puis recherchez ${KAISER_WA_DISPLAY} (Kaiser Ivory Coast).`
+                });
+                showToast(`✅ Choisissez WhatsApp puis ${KAISER_WA_DISPLAY}`, 'success');
+                return;
+            } catch (err) {
+                if (err && err.name === 'AbortError') {
+                    // Customer closed the share sheet — let them try again, don't redirect.
+                    return;
+                }
+                // Any other failure: fall through to the text-only link below.
+            }
+        } else if (photoFiles.length > 0) {
+            // Browser can't share files (common on desktop) — be upfront about it.
+            showToast('⚠️ Photos non jointes — ajoutez-les manuellement dans WhatsApp', 'error');
+        } else {
+            showToast('✅ Redirection vers WhatsApp…', 'success');
+        }
 
         setTimeout(() => {
-            window.location.href = `https://wa.me/254115438884?text=${msg}`;
+            window.location.href = `https://wa.me/${KAISER_WA_DIGITS}?text=${msg}`;
         }, 800);
+    }
+
+    // Plain (non-HTML-escaped) version of the message, used only for the
+    // native Share API text/caption — that's a system share sheet, not a
+    // web page, so it should never contain HTML-escaped characters.
+    function buildPlainMessage() {
+        const name     = document.getElementById('cust-name').value.trim();
+        const wa       = document.getElementById('cust-whatsapp').value.trim();
+        const backup   = document.getElementById('cust-backup').value.trim() || 'Non spécifié';
+        const location = document.getElementById('cust-location').value.trim();
+        const length   = document.getElementById('dim-length').value.trim();
+        const width    = document.getElementById('dim-width').value.trim();
+        const height   = document.getElementById('dim-height').value || 'Non spécifié';
+        const style    = document.getElementById('kitchen-style').value;
+        const notes    = document.getElementById('extra-notes').value.trim() || 'Aucune';
+        const numFiles = document.getElementById('kitchenPhoto').files.length;
+
+        return `Bonjour Kaiser Ivory Coast !\n\n` +
+            `*🏗️ NOUVELLE DEMANDE DE CUISINE*\n` +
+            `━━━━━━━━━━━━━━━━━━━━━\n` +
+            `*👤 CLIENT :* ${name}\n` +
+            `*📱 WHATSAPP :* ${wa}\n` +
+            `*📞 SECOURS :* ${backup}\n` +
+            `*📍 LOCALISATION :* ${location}\n\n` +
+            `*📐 DIMENSIONS :*\n` +
+            `• Longueur : ${length} cm\n` +
+            `• Largeur  : ${width} cm\n` +
+            `• Hauteur  : ${height} cm\n\n` +
+            `*🎨 STYLE :* ${style}\n` +
+            `*📝 NOTES :* ${notes}\n` +
+            `*📷 PHOTOS :* ${numFiles} photo${numFiles>1?'s':''} jointe${numFiles>1?'s':''} à ce message\n` +
+            `━━━━━━━━━━━━━━━━━━━━━\n` +
+            `Merci de me recontacter avec un devis.`;
     }
 
     // Update progress steps on scroll / field fill
