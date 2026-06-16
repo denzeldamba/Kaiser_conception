@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="description" content="Kaiser Ivory Coast – Cuisines sur mesure et électroménagers allemands haut de gamme à Abidjan.">
+    <title>Kaiser Ivory Coast | Excellence Allemande</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #E30613;
+            --black: #000;
+            --white: #fff;
+            --gray: #f4f4f4;
+            --dark-gray: #1a1a1a;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--white); color: var(--black); overflow-x: hidden; }
+
+        /* ── PROMO BAR ── */
+        .promo-bar {
+            background: var(--red);
+            color: white;
+            text-align: center;
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* ── HEADER ── */
+        header {
+            background: var(--black);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+        }
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4%;
+            height: 68px;
+        }
+        .logo-img { height: 44px; width: auto; }
+        .nav-links { display: flex; gap: 28px; }
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--red); }
+        .nav-right { display: flex; align-items: center; gap: 14px; }
+        .call-btn {
+            background: var(--red);
+            color: white;
+            padding: 9px 18px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .call-btn:hover { background: #c40510; }
+
+        /* ── HAMBURGER ── */
+        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 6px; background: none; border: none; }
+        .hamburger span { display: block; width: 24px; height: 2px; background: white; transition: 0.3s; }
+        .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        /* ── MOBILE NAV ── */
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            background: #111;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.3s;
+        }
+        .mobile-nav.open { max-height: 300px; padding: 12px 0 20px; }
+        .mobile-nav a {
+            color: #ccc;
+            text-decoration: none;
+            padding: 14px 6%;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px solid #222;
+            transition: color 0.2s;
+        }
+        .mobile-nav a:hover { color: var(--red); }
+
+        /* ── HERO ── */
+        .hero {
+            height: 70vh;
+            min-height: 420px;
+            background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
+                        url('https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80') no-repeat center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding: 20px;
+        }
+        .hero h1 { font-size: clamp(1.8rem, 5vw, 3.2rem); letter-spacing: 3px; font-weight: 700; line-height: 1.2; }
+        .hero p  { letter-spacing: 4px; font-size: clamp(0.75rem, 2vw, 1rem); margin-top: 12px; font-weight: 300; opacity: 0.9; }
+        .hero-cta {
+            margin-top: 30px;
+            background: var(--red);
+            color: white;
+            padding: 14px 36px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .hero-cta:hover { background: #c40510; transform: translateY(-2px); }
+
+        /* ── CONFIGURATOR CARD ── */
+        .config-wrapper {
+            max-width: 860px;
+            margin: -70px auto 80px;
+            background: white;
+            padding: 48px 44px;
+            text-align: center;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+            position: relative;
+            z-index: 5;
+        }
+        .config-badge {
+            display: inline-block;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+        }
+        .config-wrapper h2 { font-size: clamp(1.1rem, 3vw, 1.5rem); margin-bottom: 12px; font-weight: 700; }
+        .config-wrapper p  { color: #777; margin-bottom: 32px; font-size: 14px; line-height: 1.6; }
+        .btn-launch {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 16px 44px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s, transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-launch:hover { background: #c40510; transform: translateY(-2px); }
+
+        /* ── FEATURES STRIP ── */
+        .features { background: var(--gray); padding: 60px 5%; }
+        .features-title { text-align: center; font-size: clamp(1rem, 2.5vw, 1.3rem); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 40px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; max-width: 1100px; margin: 0 auto; }
+        .feature-item { text-align: center; padding: 30px 20px; background: white; border-top: 3px solid var(--red); }
+        .feature-item .icon { font-size: 32px; margin-bottom: 14px; }
+        .feature-item h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .feature-item p  { font-size: 12px; color: #777; line-height: 1.6; }
+
+        /* ── CATALOGUE CTA ── */
+        .catalogue-section {
+            background: var(--dark-gray);
+            color: white;
+            padding: 70px 5%;
+            text-align: center;
+        }
+        .catalogue-section h2 { font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: 700; letter-spacing: 2px; margin-bottom: 14px; }
+        .catalogue-section p  { color: #aaa; font-size: 14px; margin-bottom: 30px; }
+        .btn-catalogue {
+            display: inline-block;
+            border: 2px solid white;
+            color: white;
+            padding: 14px 36px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: 0.25s;
+            text-transform: uppercase;
+        }
+        .btn-catalogue:hover { background: white; color: var(--black); }
+
+        /* ── WHATSAPP FLOAT ── */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 22px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(37,211,102,0.4);
+            z-index: 999;
+            transition: transform 0.2s;
+        }
+        .whatsapp-float:hover { transform: scale(1.1); }
+
+        /* ── FOOTER ── */
+        footer { background: var(--black); color: #bbb; padding: 60px 5% 30px; font-size: 13px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 40px; border-bottom: 1px solid #222; padding-bottom: 40px; }
+        .footer-col h4 { color: white; text-transform: uppercase; margin-bottom: 18px; font-size: 13px; letter-spacing: 1px; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 10px; }
+        .footer-col ul li a { color: #bbb; text-decoration: none; transition: color 0.2s; }
+        .footer-col ul li a:hover { color: var(--red); }
+        .footer-col p { line-height: 1.7; font-size: 12px; }
+        .copyright { text-align: center; padding-top: 28px; font-size: 11px; color: #555; }
+
+        /* ── MOBILE ── */
+        @media (max-width: 768px) {
+            .nav-links, .nav-right { display: none; }
+            .hamburger { display: flex; }
+            .mobile-nav { display: flex; }
+            .config-wrapper { margin: -50px 16px 60px; padding: 32px 22px; }
+            .hero { height: 58vh; }
+            .catalogue-section { padding: 50px 5%; }
+        }
+        @media (max-width: 480px) {
+            .hero h1 { letter-spacing: 1px; }
+            .features-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+            .feature-item { padding: 22px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="promo-bar">🚚 LIVRAISON GRATUITE + INSTALLATION OFFERTE — ABIDJAN</div>
+
+<header>
+    <div class="top-nav">
+        <img src="klog.jpeg" alt="Kaiser Ivory Coast" class="logo-img">
+        <nav class="nav-links" aria-label="Navigation principale">
+            <a href="home.html">Accueil</a>
+            <a href="fullkitchen.html">Configurateur</a>
+            <a href="#produits">Produits</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <div class="nav-right">
+            <a href="tel:+22500000000" class="call-btn">📞 NOUS APPELER</a>
+        </div>
+        <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Menu mobile">
+        <a href="home.html">🏠 Accueil</a>
+        <a href="fullkitchen.html">⚙️ Configurateur</a>
+        <a href="#produits">🍳 Produits</a>
+        <a href="#contact">📞 Contact</a>
+        <a href="tel:+22500000000" style="color:#25D366; font-weight:700;">📱 Appeler maintenant</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>KAISER IVORY COAST</h1>
+    <p>VOTRE CUISINE SUR MESURE — EXCELLENCE ALLEMANDE</p>
+    <a href="fullkitchen.html" class="hero-cta">CONFIGURER MA CUISINE</a>
+</section>
+
+<div class="config-wrapper">
+    <span class="config-badge">⚡ CONFIGURATEUR GRATUIT</span>
+    <h2>Prêt pour votre nouvelle cuisine ?</h2>
+    <p>Configurez vos besoins en 60 secondes et recevez une estimation personnalisée directement sur WhatsApp.</p>
+    <a href="fullkitchen.html" class="btn-launch">LANCER LE CONFIGURATEUR</a>
+</div>
+
+<section class="features" id="produits">
+    <h2 class="features-title">Pourquoi choisir Kaiser ?</h2>
+    <div class="features-grid">
+        <div class="feature-item">
+            <div class="icon">🏆</div>
+            <h4>Qualité Allemande</h4>
+            <p>Matériaux premium et finitions irréprochables pour une durabilité maximale.</p>
+        </div>
+        <div class="feature-item">
+            <div class="icon">🚚</div>
+            <h4>Livraison Gratuite</h4>
+            <p>Livraison et installation offertes dans tout Abidjan et environs.</p>
+        </div>
+        <div class="feature-item">
+            <div class="icon">📐</div>
+            <h4>Sur Mesure</h4>
+            <p>Chaque cuisine est conçue selon vos dimensions et vos goûts.</p>
+        </div>
+        <div class="feature-item">
+            <div class="icon">🛡️</div>
+            <h4>Garantie 2 ans</h4>
+            <p>Tous nos produits sont couverts par une garantie constructeur.</p>
+        </div>
+    </div>
+</section>
+
+<section class="catalogue-section">
+    <h2>DÉCOUVREZ NOTRE CATALOGUE</h2>
+    <p>Feuilletez notre gamme complète d'appareils et de cuisines sur mesure.</p>
+    <a href="kaiser katalog.pdf" target="_blank" rel="noopener" class="btn-catalogue">📖 TÉLÉCHARGER LE CATALOGUE PDF</a>
+</section>
+
+<footer id="contact">
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4>Kaiser Ivory Coast</h4>
+            <p>Spécialiste des appareils de cuisine allemands haut de gamme depuis plus de 10 ans en Côte d'Ivoire.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Produits</h4>
+            <ul>
+                <li><a href="#">Plaques de cuisson</a></li>
+                <li><a href="#">Fours encastrés</a></li>
+                <li><a href="#">Hottes aspirantes</a></li>
+                <li><a href="#">Réfrigérateurs</a></li>
+                <li><a href="#">Lave-vaisselle</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Contact</h4>
+            <ul>
+                <li>📍 Showroom Abidjan, Côte d'Ivoire</li>
+                <li>✉️ <a href="mailto:info@kaiser.ci">info@kaiser.ci</a></li>
+                <li>💬 <a href="https://wa.me/22500000000">WhatsApp: +225 00 00 00 00</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="copyright">
+        &copy; 2026 Kaiser Ivory Coast. All Rights Reserved. | Designed for Excellence.
+    </div>
+</footer>
+
+<a href="https://wa.me/22500000000" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Nous contacter sur WhatsApp">💬</a>
+
+<script>
+    // Mobile hamburger menu
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav  = document.getElementById('mobileNav');
+    hamburger.addEventListener('click', () => {
+        const open = mobileNav.classList.toggle('open');
+        hamburger.classList.toggle('open', open);
+        hamburger.setAttribute('aria-expanded', open);
+    });
+    // Close mobile nav on link click
+    mobileNav.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+            mobileNav.classList.remove('open');
+            hamburger.classList.remove('open');
+            hamburger.setAttribute('aria-expanded', false);
+        });
+    });
+</script>
+
+</body>
+</html>

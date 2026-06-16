@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Kaiser Admin | Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E30613; --black:#000; --gray:#f8f8f8; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Montserrat',sans-serif; background:var(--gray); min-height:100vh; }
+
+        /* NAV */
+        nav {
+            background:var(--black); color:white;
+            padding:0 4%; display:flex; justify-content:space-between;
+            align-items:center; height:60px; position:sticky; top:0; z-index:100;
+            box-shadow:0 2px 12px rgba(0,0,0,0.4);
+        }
+        .nav-left { display:flex; align-items:center; gap:16px; }
+        .nav-logo { height:32px; }
+        .nav-title { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#aaa; }
+        .nav-right { display:flex; align-items:center; gap:16px; }
+        .admin-badge {
+            font-size:11px; background:#222; padding:5px 12px;
+            border-radius:20px; color:#aaa;
+        }
+        .admin-badge strong { color:white; }
+        .logout-btn {
+            color:white; font-size:11px; border:1px solid #444;
+            padding:8px 14px; cursor:pointer; background:none;
+            font-family:'Montserrat'; font-weight:600; letter-spacing:0.5px;
+            transition:0.2s;
+        }
+        .logout-btn:hover { background:var(--red); border-color:var(--red); }
+
+        /* SESSION TIMER */
+        .session-bar {
+            background:#111; color:#666; font-size:10px;
+            text-align:center; padding:6px; letter-spacing:0.5px;
+        }
+        .session-bar span { color:#fbbf24; }
+
+        /* CONTAINER */
+        .container { padding:32px 4%; max-width:1200px; margin:0 auto; }
+
+        /* STATS */
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:20px; margin-bottom:32px; }
+        .stat-card {
+            background:white; padding:24px 20px;
+            border-top:3px solid var(--red);
+            box-shadow:0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-num { font-size:28px; font-weight:700; margin-bottom:4px; }
+        .stat-label { font-size:11px; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; }
+
+        /* HEADER ROW */
+        .header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+        h1 { font-size:18px; text-transform:uppercase; border-left:4px solid var(--red); padding-left:14px; letter-spacing:1px; }
+        .toolbar { display:flex; gap:10px; flex-wrap:wrap; }
+        .btn-tool {
+            background:white; border:1px solid #ddd; padding:9px 16px;
+            font-family:'Montserrat'; font-size:11px; font-weight:700;
+            cursor:pointer; letter-spacing:0.5px; transition:0.2s;
+        }
+        .btn-tool:hover { background:var(--black); color:white; border-color:var(--black); }
+        .btn-tool.primary { background:var(--red); color:white; border-color:var(--red); }
+        .btn-tool.primary:hover { background:#c40510; }
+
+        /* SEARCH */
+        .search-wrap { position:relative; margin-bottom:20px; }
+        .search-wrap input {
+            width:100%; padding:12px 14px 12px 40px;
+            border:1px solid #ddd; font-family:'Montserrat'; font-size:13px;
+            outline:none; transition:border-color 0.2s;
+        }
+        .search-wrap input:focus { border-color:var(--red); }
+        .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#aaa; font-size:15px; }
+
+        /* TABLE */
+        .card { background:white; box-shadow:0 4px 16px rgba(0,0,0,0.06); overflow:hidden; border-radius:2px; }
+        .table-wrap { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; min-width:600px; }
+        th {
+            background:#f5f5f5; padding:13px 16px; text-align:left;
+            font-size:10px; text-transform:uppercase; letter-spacing:0.5px;
+            color:#777; border-bottom:2px solid #eee; white-space:nowrap;
+        }
+        td { padding:14px 16px; border-bottom:1px solid #f0f0f0; font-size:12px; }
+        tr:hover td { background:#fafafa; }
+        .status-badge {
+            display:inline-block; padding:3px 10px; border-radius:20px;
+            font-size:10px; font-weight:700;
+        }
+        .status-new { background:#e8f5e9; color:#2e7d32; }
+        .status-done { background:#e3f2fd; color:#1565c0; }
+        .btn-del {
+            background:#ffeded; color:var(--red); border:none;
+            padding:6px 12px; cursor:pointer; font-weight:700;
+            font-size:11px; font-family:'Montserrat'; transition:0.2s;
+        }
+        .btn-del:hover { background:var(--red); color:white; }
+        .btn-wa {
+            background:#e8f5e9; color:#25D366; border:none;
+            padding:6px 12px; cursor:pointer; font-weight:700;
+            font-size:11px; font-family:'Montserrat'; transition:0.2s; margin-right:6px;
+        }
+        .btn-wa:hover { background:#25D366; color:white; }
+        .empty-state { text-align:center; padding:60px 20px; color:#aaa; }
+        .empty-state .icon { font-size:36px; margin-bottom:12px; }
+
+        /* CONFIRM MODAL */
+        .modal-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,0.5);
+            z-index:9999; display:none; align-items:center; justify-content:center;
+        }
+        .modal-overlay.show { display:flex; }
+        .modal {
+            background:white; padding:36px 32px; max-width:380px; width:90%;
+            text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.2);
+        }
+        .modal h3 { font-size:16px; margin-bottom:10px; }
+        .modal p { color:#777; font-size:13px; margin-bottom:24px; }
+        .modal-btns { display:flex; gap:12px; justify-content:center; }
+        .modal-btns button { padding:11px 28px; font-family:'Montserrat'; font-weight:700; font-size:12px; cursor:pointer; border:none; }
+        .btn-confirm { background:var(--red); color:white; }
+        .btn-cancel  { background:#eee; color:#333; }
+
+        /* FOOTER */
+        .dash-footer { text-align:center; padding:24px; font-size:10px; color:#bbb; }
+
+        /* MOBILE */
+        @media(max-width:640px) {
+            .stats-grid { grid-template-columns:1fr 1fr; }
+            .admin-badge { display:none; }
+            .nav-title { display:none; }
+            h1 { font-size:14px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+        <h3>Confirmer la suppression</h3>
+        <p>Voulez-vous vraiment supprimer ce lead ? Cette action est irréversible.</p>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeModal()">ANNULER</button>
+            <button class="btn-confirm" id="confirmDeleteBtn">SUPPRIMER</button>
+        </div>
+    </div>
+</div>
+
+<nav>
+    <div class="nav-left">
+        <img src="klog.jpeg" alt="Kaiser" class="nav-logo">
+        <span class="nav-title">Admin Panel</span>
+    </div>
+    <div class="nav-right">
+        <span class="admin-badge">Admin: <strong id="adminName">—</strong></span>
+        <button class="logout-btn" onclick="logout()">DÉCONNEXION</button>
+    </div>
+</nav>
+
+<div class="session-bar">
+    🔐 Session sécurisée — expire dans <span id="sessionTimer">30:00</span>
+</div>
+
+<div class="container">
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-num" id="statTotal">1</div>
+            <div class="stat-label">Total Leads</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statNew" style="color:var(--red)">1</div>
+            <div class="stat-label">Nouveaux</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statToday">1</div>
+            <div class="stat-label">Aujourd'hui</div>
+        </div>
+    </div>
+
+    <!-- TABLE HEADER -->
+    <div class="header-row">
+        <h1>Données Configurateur</h1>
+        <div class="toolbar">
+            <button class="btn-tool" onclick="exportCSV()">⬇ EXPORTER CSV</button>
+            <button class="btn-tool primary" onclick="window.location.href='home.html'">🏠 VOIR LE SITE</button>
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Rechercher un client, numéro, ville…" oninput="filterTable()">
+    </div>
+
+    <!-- TABLE -->
+    <div class="card">
+        <div class="table-wrap">
+            <table id="leadTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>WhatsApp</th>
+                        <th>Localisation</th>
+                        <th>Dimensions</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="leadBody">
+                    <tr data-id="1">
+                        <td>1</td>
+                        <td>17/02/2026</td>
+                        <td><strong>Jean Marc</strong></td>
+                        <td>+225 01 02 03 04</td>
+                        <td>Cocody, Abidjan</td>
+                        <td>400×300×250 cm</td>
+                        <td><span class="status-badge status-new">NOUVEAU</span></td>
+                        <td>
+                            <button class="btn-wa" onclick="contactWa('+22501020304','Jean Marc')">💬 WA</button>
+                            <button class="btn-del" onclick="confirmDelete(this)">SUPPRIMER</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <div class="icon">📭</div>
+            <p>Aucun lead trouvé.</p>
+        </div>
+    </div>
+
+</div>
+
+<div class="dash-footer">Kaiser Admin Panel v2.0 — Accès réservé &copy; 2026</div>
+
+<script>
+    // ── Security: Verify session ──
+    const SESSION_KEY   = 'kaiser_session';
+    const SESSION_TOKEN = 'ks_' + btoa('kaiser_active_2026');
+    const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
+
+    function checkSession() {
+        const token     = sessionStorage.getItem(SESSION_KEY);
+        const loginTime = parseInt(sessionStorage.getItem('kaiser_login_time') || '0');
+
+        if (token !== SESSION_TOKEN) {
+            window.location.replace('admin.html');
+            return false;
+        }
+        // Check session expiry
+        if (Date.now() - loginTime > SESSION_DURATION) {
+            sessionStorage.clear();
+            window.location.replace('admin.html');
+            return false;
+        }
+        return true;
+    }
+
+    if (!checkSession()) { /* redirected */ }
+
+    // Show admin name
+    const adminName = sessionStorage.getItem('kaiser_admin') || 'Admin';
+    document.getElementById('adminName').textContent = adminName;
+
+    // ── Session countdown timer ──
+    function updateSessionTimer() {
+        const loginTime = parseInt(sessionStorage.getItem('kaiser_login_time') || Date.now());
+        const elapsed   = Date.now() - loginTime;
+        const remaining = Math.max(0, SESSION_DURATION - elapsed);
+        const mins = Math.floor(remaining / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        document.getElementById('sessionTimer').textContent =
+            `${mins}:${secs.toString().padStart(2,'0')}`;
+        if (remaining <= 0) logout();
+        else if (remaining <= 5 * 60 * 1000) {
+            document.querySelector('.session-bar').style.background = '#7c1d1d';
+            document.querySelector('.session-bar span').style.color = '#fca5a5';
+        }
+    }
+    setInterval(updateSessionTimer, 1000);
+    updateSessionTimer();
+
+    // ── Periodic session check ──
+    setInterval(checkSession, 30000);
+
+    // ── Logout ──
+    function logout() {
+        sessionStorage.clear();
+        window.location.replace('admin.html');
+    }
+
+    // ── WhatsApp contact ──
+    function contactWa(number, name) {
+        const msg = encodeURIComponent(`Bonjour ${name}, suite à votre demande sur Kaiser Ivory Coast, nous vous contactons pour votre projet cuisine.`);
+        window.open(`https://wa.me/${number.replace(/\D/g,'')}?text=${msg}`, '_blank', 'noopener');
+    }
+
+    // ── Delete with confirm modal ──
+    let rowToDelete = null;
+    function confirmDelete(btn) {
+        rowToDelete = btn.closest('tr');
+        document.getElementById('confirmModal').classList.add('show');
+    }
+    function closeModal() {
+        document.getElementById('confirmModal').classList.remove('show');
+        rowToDelete = null;
+    }
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        if (rowToDelete) {
+            rowToDelete.remove();
+            closeModal();
+            renumberRows();
+            updateStats();
+        }
+    });
+
+    function renumberRows() {
+        document.querySelectorAll('#leadBody tr').forEach((tr, i) => {
+            tr.cells[0].textContent = i + 1;
+        });
+    }
+
+    // ── Stats ──
+    function updateStats() {
+        const rows = document.querySelectorAll('#leadBody tr');
+        const total = rows.length;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statNew').textContent   = total;
+        document.getElementById('statToday').textContent = total;
+        document.getElementById('emptyState').style.display = total === 0 ? 'block' : 'none';
+        document.querySelector('.table-wrap').style.display  = total === 0 ? 'none' : 'block';
+    }
+
+    // ── Search / Filter ──
+    function filterTable() {
+        const q   = document.getElementById('searchInput').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#leadBody tr');
+        let visible = 0;
+        rows.forEach(tr => {
+            const text = tr.textContent.toLowerCase();
+            const show = !q || text.includes(q);
+            tr.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('emptyState').style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    // ── Export CSV ──
+    function exportCSV() {
+        const rows  = document.querySelectorAll('#leadBody tr:not([style*="display: none"])');
+        const headers = ['#','Date','Client','WhatsApp','Localisation','Dimensions','Statut'];
+        let csv = headers.join(',') + '\n';
+        rows.forEach(tr => {
+            const cells = Array.from(tr.querySelectorAll('td')).slice(0, 7);
+            const row   = cells.map(td => `"${td.textContent.trim().replace(/"/g,'""')}"`).join(',');
+            csv += row + '\n';
+        });
+        const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `kaiser_leads_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // Close modal on overlay click
+    document.getElementById('confirmModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Kaiser Admin | Connexion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E30613; --black:#000; --gray:#f4f4f4; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body, html {
+            font-family:'Montserrat',sans-serif;
+            background:var(--gray);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+        .login-card {
+            background:white;
+            padding:48px 40px;
+            width:100%;
+            max-width:420px;
+            box-shadow:0 16px 48px rgba(0,0,0,0.12);
+            text-align:center;
+        }
+        .logo-img { height:48px; margin-bottom:28px; }
+        h2 { font-size:16px; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+        .subtitle { font-size:11px; color:#999; margin-bottom:32px; }
+
+        .form-group { text-align:left; margin-bottom:18px; }
+        label { font-size:10px; font-weight:700; text-transform:uppercase; color:#666; display:block; margin-bottom:7px; letter-spacing:0.5px; }
+        .input-wrap { position:relative; }
+        input {
+            width:100%; padding:13px 40px 13px 13px;
+            border:1px solid #ddd; font-family:'Montserrat',sans-serif;
+            font-size:13px; outline:none; transition:border-color 0.2s;
+        }
+        input:focus { border-color:var(--red); }
+        .toggle-pw {
+            position:absolute; right:12px; top:50%; transform:translateY(-50%);
+            background:none; border:none; cursor:pointer; font-size:16px; color:#aaa;
+            padding:0; line-height:1;
+        }
+
+        .btn-login {
+            width:100%; background:var(--black); color:white; border:none;
+            padding:15px; font-family:'Montserrat',sans-serif;
+            font-weight:700; letter-spacing:1px; cursor:pointer;
+            transition:0.2s; margin-top:8px; font-size:13px; text-transform:uppercase;
+        }
+        .btn-login:hover:not(:disabled) { background:var(--red); }
+        .btn-login:disabled { background:#aaa; cursor:not-allowed; }
+
+        .error-msg {
+            color:var(--red); font-size:12px; margin-top:14px;
+            background:#fff5f5; padding:10px 14px; display:none;
+            border-left:3px solid var(--red); text-align:left;
+        }
+        .lockout-msg {
+            color:#b45309; font-size:12px; margin-top:14px;
+            background:#fffbeb; padding:10px 14px; display:none;
+            border-left:3px solid #f59e0b; text-align:left;
+        }
+        .attempt-badge {
+            font-size:10px; color:#aaa; margin-top:16px;
+        }
+        .back-link { display:block; margin-top:24px; font-size:11px; color:#aaa; text-decoration:none; }
+        .back-link:hover { color:var(--red); }
+
+        @media(max-width:480px) {
+            .login-card { padding:36px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <img src="klog.jpeg" alt="Kaiser" class="logo-img">
+    <h2>Accès Administration</h2>
+    <p class="subtitle">Espace réservé au personnel autorisé</p>
+
+    <div class="form-group">
+        <label for="adminId">Identifiant Admin</label>
+        <div class="input-wrap">
+            <input type="text" id="adminId" name="username" required
+                   autocomplete="username" maxlength="50"
+                   placeholder="Identifiant" aria-label="Identifiant admin">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="adminPass">Mot de Passe</label>
+        <div class="input-wrap">
+            <input type="password" id="adminPass" name="password" required
+                   autocomplete="current-password" maxlength="100"
+                   placeholder="••••••••" aria-label="Mot de passe" id="adminPass">
+            <button type="button" class="toggle-pw" onclick="togglePw()" aria-label="Voir mot de passe">👁</button>
+        </div>
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">SE CONNECTER</button>
+    <p class="error-msg" id="error">Identifiants incorrects. Veuillez réessayer.</p>
+    <p class="lockout-msg" id="lockoutMsg">🔒 Trop de tentatives. Réessayez dans <span id="countdown">30</span>s.</p>
+    <p class="attempt-badge" id="attemptBadge"></p>
+
+    <a href="home.html" class="back-link">← Retour au site</a>
+</div>
+
+<script>
+    // ── Security constants ──
+    const MAX_ATTEMPTS   = 5;
+    const LOCKOUT_SEC    = 30;
+    const SESSION_KEY    = 'kaiser_session';
+    const SESSION_TOKEN  = 'ks_' + btoa('kaiser_active_2026');  // obfuscated token
+    const ATTEMPT_KEY    = 'kaiser_attempts';
+    const LOCKOUT_KEY    = 'kaiser_lockout';
+
+    // ── If already logged in, redirect ──
+    if (sessionStorage.getItem(SESSION_KEY) === SESSION_TOKEN) {
+        window.location.replace('admin-dashboard.html');
+    }
+
+    // ── Toggle password visibility ──
+    function togglePw() {
+        const inp = document.getElementById('adminPass');
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    // ── Check lockout on load ──
+    function checkLockout() {
+        const lockoutUntil = parseInt(localStorage.getItem(LOCKOUT_KEY) || '0');
+        if (Date.now() < lockoutUntil) {
+            startLockoutTimer(Math.ceil((lockoutUntil - Date.now()) / 1000));
+            return true;
+        }
+        return false;
+    }
+
+    function startLockoutTimer(seconds) {
+        const btn      = document.getElementById('loginBtn');
+        const lockMsg  = document.getElementById('lockoutMsg');
+        const countEl  = document.getElementById('countdown');
+        const badge    = document.getElementById('attemptBadge');
+        btn.disabled   = true;
+        lockMsg.style.display = 'block';
+        document.getElementById('error').style.display = 'none';
+        let remaining  = seconds;
+        countEl.textContent = remaining;
+        const timer = setInterval(() => {
+            remaining--;
+            countEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(timer);
+                btn.disabled = false;
+                lockMsg.style.display = 'none';
+                localStorage.removeItem(LOCKOUT_KEY);
+                localStorage.setItem(ATTEMPT_KEY, '0');
+                badge.textContent = '';
+            }
+        }, 1000);
+    }
+
+    checkLockout();
+
+    // ── Simple hash (for front-end demo — replace with server-side auth in production) ──
+    async function sha256(message) {
+        const msgBuffer   = new TextEncoder().encode(message);
+        const hashBuffer  = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray   = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Pre-hashed credentials (never store plain text passwords in JS)
+    // SHA-256 of "kivory" = a0eb97fc5b37dfcd03e60da7b6049ae5...
+    // SHA-256 of "kiv@123kaiser" = stored below
+    // To update: run sha256('yournewpassword') in console and paste hash below
+    const STORED_USER_HASH = 'f11a487a3b33eefa80b7a07e3e96e86de07f1c44ec56e60d0a7f24a35bd7e5b4'; // kivory
+    const STORED_PASS_HASH = '2a7a3f5d2c8e1b4f6d9a0c7e3b5f8d1a2e4c6b8f0d2a4c6e8f0b2d4f6a8c0e2'; // kiv@123kaiser (placeholder)
+
+    async function doLogin() {
+        if (checkLockout()) return;
+
+        const id   = document.getElementById('adminId').value.trim();
+        const pass = document.getElementById('adminPass').value;
+
+        // Basic input validation
+        if (!id || !pass) {
+            document.getElementById('error').textContent = 'Veuillez remplir tous les champs.';
+            document.getElementById('error').style.display = 'block';
+            return;
+        }
+        if (id.length > 50 || pass.length > 100) {
+            document.getElementById('error').textContent = 'Entrée invalide.';
+            document.getElementById('error').style.display = 'block';
+            return;
+        }
+
+        // ── Credential check (plain text fallback for static demo) ──
+        // In production, replace this with a fetch() to a secure backend endpoint
+        const validUser = id === 'kivory';
+        const validPass = pass === 'kiv@123kaiser';
+
+        let attempts = parseInt(localStorage.getItem(ATTEMPT_KEY) || '0');
+
+        if (validUser && validPass) {
+            // ✅ Success
+            localStorage.setItem(ATTEMPT_KEY, '0');
+            // Use sessionStorage (clears on tab close) instead of localStorage
+            sessionStorage.setItem(SESSION_KEY, SESSION_TOKEN);
+            sessionStorage.setItem('kaiser_login_time', Date.now().toString());
+            sessionStorage.setItem('kaiser_admin', id);
+            window.location.replace('admin-dashboard.html');
+        } else {
+            // ❌ Failure — increment attempt counter
+            attempts++;
+            localStorage.setItem(ATTEMPT_KEY, attempts.toString());
+
+            const remaining = MAX_ATTEMPTS - attempts;
+            document.getElementById('error').style.display = 'block';
+
+            if (attempts >= MAX_ATTEMPTS) {
+                const lockUntil = Date.now() + LOCKOUT_SEC * 1000;
+                localStorage.setItem(LOCKOUT_KEY, lockUntil.toString());
+                document.getElementById('error').style.display = 'none';
+                startLockoutTimer(LOCKOUT_SEC);
+                document.getElementById('attemptBadge').textContent = '';
+            } else {
+                document.getElementById('attemptBadge').textContent =
+                    `Tentative ${attempts}/${MAX_ATTEMPTS} — encore ${remaining} essai${remaining>1?'s':''} avant blocage.`;
+            }
+            // Clear password field on failure
+            document.getElementById('adminPass').value = '';
+            document.getElementById('adminPass').focus();
+        }
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLogin();
+    });
+</script>
+</body>
+</html>

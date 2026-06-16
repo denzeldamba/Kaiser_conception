@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="description" content="Configurez votre cuisine Kaiser sur mesure en 60 secondes.">
+    <title>Configurateur Cuisine | Kaiser Ivory Coast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E30613; --black:#000; --white:#fff; --gray:#f4f4f4; }
+        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+        body { font-family:'Montserrat',sans-serif; background:var(--white); color:var(--black); }
+
+        /* PROMO */
+        .promo-bar { background:var(--red); color:white; text-align:center; padding:10px 16px; font-size:12px; font-weight:600; letter-spacing:1px; }
+
+        /* HEADER */
+        header { background:var(--black); position:sticky; top:0; z-index:1000; box-shadow:0 2px 12px rgba(0,0,0,0.4); }
+        .top-nav { display:flex; justify-content:space-between; align-items:center; padding:0 4%; height:64px; }
+        .logo-img { height:40px; }
+        .back-btn {
+            color:#ccc; text-decoration:none; font-size:12px; font-weight:600;
+            display:flex; align-items:center; gap:8px; letter-spacing:0.5px;
+            padding:8px 16px; border:1px solid #333; transition:0.2s;
+        }
+        .back-btn:hover { color:white; border-color:var(--red); background:var(--red); }
+        .nav-badge { font-size:10px; color:var(--red); font-weight:700; letter-spacing:1px; }
+
+        /* PROGRESS */
+        .progress-bar { background:#111; padding:14px 5%; }
+        .steps { display:flex; align-items:center; gap:0; max-width:700px; margin:0 auto; }
+        .step { display:flex; align-items:center; gap:8px; flex:1; }
+        .step-num {
+            width:28px; height:28px; border-radius:50%; background:#333; color:#666;
+            display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;
+        }
+        .step.active .step-num { background:var(--red); color:white; }
+        .step.done .step-num { background:#25D366; color:white; }
+        .step-label { font-size:10px; color:#666; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
+        .step.active .step-label { color:white; }
+        .step-line { flex:1; height:1px; background:#333; margin:0 8px; }
+
+        /* CONTAINER */
+        .container { max-width:960px; margin:40px auto 160px; padding:0 20px; }
+
+        /* SECTIONS */
+        .form-section-title {
+            font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+            border-left:4px solid var(--red); padding-left:14px; margin:40px 0 20px;
+        }
+        .form-section-title span { color:var(--red); margin-right:8px; }
+        .section-box { background:var(--gray); padding:28px; border-radius:4px; margin-bottom:10px; }
+        .section-desc { font-size:13px; color:#777; margin-bottom:20px; line-height:1.6; }
+
+        .input-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:18px; }
+        .input-field { display:flex; flex-direction:column; }
+        .input-field label { font-size:11px; font-weight:700; margin-bottom:7px; text-transform:uppercase; color:#555; }
+        .input-field input,
+        .input-field select,
+        .input-field textarea {
+            padding:12px 14px; border:1px solid #ddd; font-family:'Montserrat',sans-serif;
+            font-size:13px; outline:none; transition:border-color 0.2s;
+            background:white;
+        }
+        .input-field input:focus,
+        .input-field select:focus,
+        .input-field textarea:focus { border-color:var(--red); }
+        .input-field input.error,
+        .input-field select.error { border-color:#ff4444; background:#fff5f5; }
+        .field-error { font-size:10px; color:#ff4444; margin-top:4px; display:none; }
+
+        /* UPLOAD */
+        .upload-zone {
+            border:2px dashed #ccc; padding:40px 20px; text-align:center;
+            background:var(--gray); cursor:pointer; transition:border-color 0.2s;
+        }
+        .upload-zone:hover { border-color:var(--red); }
+        .upload-zone.has-files { border-color:#25D366; background:#f0fff4; }
+        .upload-icon { font-size:36px; margin-bottom:12px; }
+        .upload-zone p { font-size:13px; color:#666; margin-bottom:14px; }
+        .upload-btn-label {
+            background:var(--black); color:white; padding:11px 24px;
+            display:inline-block; font-weight:700; font-size:12px; cursor:pointer;
+            letter-spacing:0.5px; transition:0.2s;
+        }
+        .upload-btn-label:hover { background:var(--red); }
+        #file-count { font-size:12px; color:#555; margin-top:10px; }
+
+        /* FOOTER ACTION */
+        .footer-action {
+            position:fixed; bottom:0; left:0; right:0;
+            background:white; border-top:2px solid #eee;
+            padding:16px 20px; z-index:100;
+            box-shadow:0 -4px 20px rgba(0,0,0,0.1);
+            display:flex; align-items:center; justify-content:center; gap:16px;
+        }
+        .btn-whatsapp {
+            background:#25D366; color:white; border:none;
+            padding:14px 32px; font-family:'Montserrat',sans-serif;
+            font-weight:700; font-size:13px; cursor:pointer;
+            text-transform:uppercase; letter-spacing:1px; transition:0.2s;
+            flex:1; max-width:480px;
+        }
+        .btn-whatsapp:hover { background:#1da851; }
+        .btn-back-mobile {
+            background:var(--gray); color:var(--black); border:1px solid #ddd;
+            padding:14px 20px; font-family:'Montserrat',sans-serif;
+            font-weight:600; font-size:12px; cursor:pointer; transition:0.2s;
+        }
+        .btn-back-mobile:hover { background:var(--black); color:white; }
+
+        /* TOAST */
+        .toast {
+            position:fixed; top:80px; left:50%; transform:translateX(-50%);
+            background:#333; color:white; padding:12px 24px;
+            border-radius:2px; font-size:13px; font-weight:600;
+            z-index:9999; opacity:0; pointer-events:none;
+            transition:opacity 0.3s; white-space:nowrap;
+        }
+        .toast.show { opacity:1; }
+        .toast.error { background:var(--red); }
+        .toast.success { background:#25D366; }
+
+        /* MOBILE */
+        @media (max-width:640px) {
+            .steps .step-label { display:none; }
+            .section-box { padding:18px; }
+            .input-grid { grid-template-columns:1fr; }
+            .container { margin:24px auto 160px; padding:0 14px; }
+            .footer-action { flex-wrap:wrap; gap:10px; }
+            .btn-whatsapp { max-width:100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="promo-bar">🚚 LIVRAISON GRATUITE + INSTALLATION OFFERTE</div>
+
+<header>
+    <div class="top-nav">
+        <img src="klog.jpeg" alt="Kaiser" class="logo-img">
+        <span class="nav-badge">CONFIGURATEUR PRO</span>
+        <a href="home.html" class="back-btn">← RETOUR ACCUEIL</a>
+    </div>
+</header>
+
+<!-- PROGRESS STEPS -->
+<div class="progress-bar">
+    <div class="steps">
+        <div class="step active" id="step1">
+            <div class="step-num">1</div>
+            <div class="step-label">Dimensions</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step2">
+            <div class="step-num">2</div>
+            <div class="step-label">Photos</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step3">
+            <div class="step-num">3</div>
+            <div class="step-label">Contact</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step4">
+            <div class="step-num">✓</div>
+            <div class="step-label">Envoi</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- SECTION 1 -->
+    <h2 class="form-section-title"><span>1.</span> DIMENSIONS DE VOTRE CUISINE</h2>
+    <div class="section-box">
+        <p class="section-desc">Fournissez les dimensions approximatives de votre espace pour une estimation précise.</p>
+        <div class="input-grid">
+            <div class="input-field">
+                <label>Longueur (cm) *</label>
+                <input type="number" id="dim-length" placeholder="ex: 400" min="50" max="2000" inputmode="numeric">
+                <span class="field-error" id="err-length">Veuillez entrer une longueur valide.</span>
+            </div>
+            <div class="input-field">
+                <label>Largeur (cm) *</label>
+                <input type="number" id="dim-width" placeholder="ex: 300" min="50" max="2000" inputmode="numeric">
+                <span class="field-error" id="err-width">Veuillez entrer une largeur valide.</span>
+            </div>
+            <div class="input-field">
+                <label>Hauteur sous plafond (cm)</label>
+                <input type="number" id="dim-height" placeholder="ex: 250" min="150" max="500" inputmode="numeric">
+            </div>
+        </div>
+        <div class="input-grid" style="margin-top:18px;">
+            <div class="input-field">
+                <label>Style préféré</label>
+                <select id="kitchen-style">
+                    <option value="Non spécifié">Choisir un style…</option>
+                    <option>Moderne / Minimaliste</option>
+                    <option>Classique / Rustique</option>
+                    <option>Industriel</option>
+                    <option>Scandinave</option>
+                    <option>Contemporain</option>
+                </select>
+            </div>
+            <div class="input-field" style="grid-column: span 2;">
+                <label>Notes particulières</label>
+                <textarea id="extra-notes" rows="3" placeholder="Ex: emplacement gaz à gauche, prises supplémentaires…" maxlength="500"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <h2 class="form-section-title"><span>2.</span> VOTRE ESPACE ACTUEL</h2>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('kitchenPhoto').click()">
+        <div class="upload-icon">📷</div>
+        <p>Prenez des photos de votre cuisine actuelle (angles différents) pour nous aider à mieux vous conseiller.</p>
+        <input type="file" id="kitchenPhoto" hidden accept="image/*" multiple onchange="updateUploadStatus()">
+        <label class="upload-btn-label" id="upload-label">TÉLÉCHARGER DES PHOTOS</label>
+        <p id="file-count"></p>
+    </div>
+
+    <!-- SECTION 3 -->
+    <h2 class="form-section-title"><span>3.</span> COORDONNÉES DU CLIENT</h2>
+    <div class="section-box">
+        <p class="section-desc">Vos informations nous permettront de vous envoyer votre devis personnalisé.</p>
+        <div class="input-grid">
+            <div class="input-field">
+                <label>Nom complet *</label>
+                <input type="text" id="cust-name" placeholder="Votre nom complet" maxlength="100" autocomplete="name">
+                <span class="field-error" id="err-name">Veuillez entrer votre nom.</span>
+            </div>
+            <div class="input-field">
+                <label>Numéro WhatsApp *</label>
+                <input type="tel" id="cust-whatsapp" placeholder="ex: 0700000000" maxlength="20" inputmode="tel" autocomplete="tel">
+                <span class="field-error" id="err-wa">Veuillez entrer un numéro valide.</span>
+            </div>
+        </div>
+        <div class="input-grid" style="margin-top:18px;">
+            <div class="input-field">
+                <label>Numéro de secours</label>
+                <input type="tel" id="cust-backup" placeholder="Autre contact" maxlength="20" inputmode="tel">
+            </div>
+            <div class="input-field">
+                <label>Localisation *</label>
+                <input type="text" id="cust-location" placeholder="Quartier / Ville" maxlength="100" autocomplete="address-level2">
+                <span class="field-error" id="err-loc">Veuillez entrer votre localisation.</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer-action">
+    <button class="btn-back-mobile" onclick="window.location.href='home.html'">← RETOUR</button>
+    <button class="btn-whatsapp" onclick="sendToWhatsapp()">💬 ENVOYER MA CONFIGURATION VIA WHATSAPP</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ── Sanitize input to prevent XSS ──
+    function sanitize(str) {
+        return String(str)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;')
+            .replace(/'/g,'&#x27;')
+            .trim();
+    }
+
+    // ── Validate phone: digits, spaces, +, -, min 7 digits ──
+    function validPhone(val) {
+        const digits = val.replace(/\D/g,'');
+        return digits.length >= 7 && digits.length <= 15 && /^[\d\s\+\-\(\)]+$/.test(val);
+    }
+
+    // ── Show toast ──
+    function showToast(msg, type='') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show ' + type;
+        setTimeout(() => t.className = 'toast', 3000);
+    }
+
+    // ── File upload ──
+    function updateUploadStatus() {
+        const input = document.getElementById('kitchenPhoto');
+        const zone  = document.getElementById('uploadZone');
+        const label = document.getElementById('upload-label');
+        const count = document.getElementById('file-count');
+        const n = input.files.length;
+        if (n > 0) {
+            label.textContent = 'PHOTOS SÉLECTIONNÉES ✓';
+            label.style.background = '#25D366';
+            count.textContent = n === 1 ? '1 photo prête' : n + ' photos prêtes';
+            zone.classList.add('has-files');
+            // Update progress
+            document.getElementById('step2').classList.add('done');
+        }
+    }
+
+    // ── Validate & send ──
+    function sendToWhatsapp() {
+        let valid = true;
+
+        // Reset errors
+        document.querySelectorAll('.field-error').forEach(e => e.style.display='none');
+        document.querySelectorAll('input, select').forEach(e => e.classList.remove('error'));
+
+        const name     = document.getElementById('cust-name').value.trim();
+        const wa       = document.getElementById('cust-whatsapp').value.trim();
+        const location = document.getElementById('cust-location').value.trim();
+        const length   = document.getElementById('dim-length').value.trim();
+        const width    = document.getElementById('dim-width').value.trim();
+
+        if (!name) {
+            document.getElementById('cust-name').classList.add('error');
+            document.getElementById('err-name').style.display='block';
+            valid = false;
+        }
+        if (!wa || !validPhone(wa)) {
+            document.getElementById('cust-whatsapp').classList.add('error');
+            document.getElementById('err-wa').style.display='block';
+            valid = false;
+        }
+        if (!location) {
+            document.getElementById('cust-location').classList.add('error');
+            document.getElementById('err-loc').style.display='block';
+            valid = false;
+        }
+        if (!length || isNaN(length) || Number(length) < 50) {
+            document.getElementById('dim-length').classList.add('error');
+            document.getElementById('err-length').style.display='block';
+            valid = false;
+        }
+        if (!width || isNaN(width) || Number(width) < 50) {
+            document.getElementById('dim-width').classList.add('error');
+            document.getElementById('err-width').style.display='block';
+            valid = false;
+        }
+
+        if (!valid) {
+            showToast('⚠️ Veuillez remplir tous les champs obligatoires.', 'error');
+            document.querySelector('.error')?.scrollIntoView({behavior:'smooth', block:'center'});
+            return;
+        }
+
+        // Sanitize all inputs before sending
+        const sName     = sanitize(name);
+        const sWa       = sanitize(wa);
+        const sBackup   = sanitize(document.getElementById('cust-backup').value.trim() || 'Non spécifié');
+        const sLocation = sanitize(location);
+        const sLength   = sanitize(length);
+        const sWidth    = sanitize(width);
+        const sHeight   = sanitize(document.getElementById('dim-height').value || 'Non spécifié');
+        const sStyle    = sanitize(document.getElementById('kitchen-style').value);
+        const sNotes    = sanitize(document.getElementById('extra-notes').value.trim() || 'Aucune');
+
+        const numFiles  = document.getElementById('kitchenPhoto').files.length;
+        const photoStatus = numFiles > 0 ? `OUI (${numFiles} photo${numFiles>1?'s':''} jointe${numFiles>1?'s':''})` : 'AUCUNE';
+
+        const msg = encodeURIComponent(
+            `Bonjour Kaiser Ivory Coast !\n\n` +
+            `*🏗️ NOUVELLE DEMANDE DE CUISINE*\n` +
+            `━━━━━━━━━━━━━━━━━━━━━\n` +
+            `*👤 CLIENT :* ${sName}\n` +
+            `*📱 WHATSAPP :* ${sWa}\n` +
+            `*📞 SECOURS :* ${sBackup}\n` +
+            `*📍 LOCALISATION :* ${sLocation}\n\n` +
+            `*📐 DIMENSIONS :*\n` +
+            `• Longueur : ${sLength} cm\n` +
+            `• Largeur  : ${sWidth} cm\n` +
+            `• Hauteur  : ${sHeight} cm\n\n` +
+            `*🎨 STYLE :* ${sStyle}\n` +
+            `*📝 NOTES :* ${sNotes}\n` +
+            `*📷 PHOTOS :* ${photoStatus}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━\n` +
+            `Merci de me recontacter avec un devis.`
+        );
+
+        // Update progress
+        document.getElementById('step3').classList.add('done');
+        document.getElementById('step4').classList.add('active');
+        showToast('✅ Redirection vers WhatsApp…', 'success');
+
+        setTimeout(() => {
+            window.location.href = `https://wa.me/254115438884?text=${msg}`;
+        }, 800);
+    }
+
+    // Update progress steps on scroll / field fill
+    document.getElementById('cust-name').addEventListener('input', () => {
+        if (document.getElementById('cust-name').value.trim()) {
+            document.getElementById('step3').classList.add('active');
+        }
+    });
+    document.getElementById('dim-length').addEventListener('input', () => {
+        if (document.getElementById('dim-length').value.trim()) {
+            document.getElementById('step1').classList.add('done');
+            document.getElementById('step2').classList.add('active');
+        }
+    });
+</script>
+</body>
+</html>

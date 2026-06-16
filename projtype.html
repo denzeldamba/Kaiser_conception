@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <title>Type de Projet | Kaiser Ivory Coast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red:#E30613; --black:#000; --white:#fff; --gray:#f4f4f4; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Montserrat',sans-serif; background:var(--gray); color:var(--black); }
+
+        .promo-bar { background:var(--red); color:white; text-align:center; padding:10px; font-size:12px; font-weight:600; letter-spacing:1px; }
+
+        header { background:var(--black); position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,0.4); }
+        .top-nav { display:flex; justify-content:space-between; align-items:center; padding:0 4%; height:64px; }
+        .logo-img { height:40px; }
+        .back-btn {
+            color:#ccc; text-decoration:none; font-size:12px; font-weight:600;
+            display:flex; align-items:center; gap:8px; padding:8px 16px;
+            border:1px solid #333; transition:0.2s;
+        }
+        .back-btn:hover { color:white; border-color:var(--red); background:var(--red); }
+
+        .page-header { background:var(--black); padding:48px 5% 56px; text-align:center; color:white; }
+        .step-pill {
+            display:inline-block; background:var(--red);
+            color:white; font-size:10px; font-weight:700;
+            padding:5px 14px; letter-spacing:1px; margin-bottom:16px; text-transform:uppercase;
+        }
+        .page-header h1 { font-size:clamp(1.3rem,4vw,2rem); font-weight:700; letter-spacing:2px; margin-bottom:10px; }
+        .page-header p  { color:#aaa; font-size:14px; }
+
+        .selection-container {
+            max-width:1100px; margin:-30px auto 60px;
+            padding:0 20px;
+        }
+        .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; }
+
+        .type-card {
+            background:white; padding:40px 28px;
+            border:2px solid transparent;
+            transition:all 0.3s; cursor:pointer;
+            display:flex; flex-direction:column; align-items:center;
+            text-decoration:none; color:inherit;
+            box-shadow:0 4px 16px rgba(0,0,0,0.06);
+        }
+        .type-card:hover {
+            border-color:var(--red);
+            box-shadow:0 16px 40px rgba(0,0,0,0.12);
+            transform:translateY(-6px);
+        }
+        .icon-box { font-size:44px; margin-bottom:20px; }
+        .type-card h3 { text-transform:uppercase; font-size:16px; margin-bottom:12px; letter-spacing:1px; font-weight:700; }
+        .type-card p { font-size:13px; color:#777; line-height:1.7; margin-bottom:28px; text-align:center; }
+        .btn-select {
+            border:2px solid var(--black); padding:10px 32px;
+            font-size:11px; font-weight:700; letter-spacing:1px;
+            transition:0.2s; text-transform:uppercase;
+        }
+        .type-card:hover .btn-select { background:var(--red); border-color:var(--red); color:white; }
+
+        footer { background:var(--black); color:#777; padding:36px 5%; font-size:11px; text-align:center; }
+
+        @media(max-width:640px) {
+            .grid { grid-template-columns:1fr; gap:16px; }
+            .page-header { padding:36px 5% 48px; }
+            .selection-container { margin:-20px auto 40px; }
+            .type-card { padding:30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="promo-bar">🚚 LIVRAISON GRATUITE + INSTALLATION OFFERTE — ABIDJAN</div>
+
+<header>
+    <div class="top-nav">
+        <img src="klog.jpeg" alt="Kaiser" class="logo-img">
+        <a href="home.html" class="back-btn">← RETOUR ACCUEIL</a>
+    </div>
+</header>
+
+<div class="page-header">
+    <span class="step-pill">ÉTAPE 1 SUR 4</span>
+    <h1>QUEL EST VOTRE PROJET ?</h1>
+    <p>Choisissez la catégorie qui correspond à vos besoins.</p>
+</div>
+
+<div class="selection-container">
+    <div class="grid">
+        <a href="fullkitchen.html" class="type-card">
+            <div class="icon-box">🏗️</div>
+            <h3>Cuisine Complète</h3>
+            <p>Projet de A à Z — meubles sur mesure, plan de travail et électroménagers intégrés Kaiser.</p>
+            <div class="btn-select">SÉLECTIONNER</div>
+        </a>
+        <a href="fullkitchen.html" class="type-card">
+            <div class="icon-box">🔌</div>
+            <h3>Électroménagers</h3>
+            <p>Équipez votre cuisine existante avec la technologie de pointe de la gamme Kaiser Allemagne.</p>
+            <div class="btn-select">SÉLECTIONNER</div>
+        </a>
+        <a href="fullkitchen.html" class="type-card">
+            <div class="icon-box">🛋️</div>
+            <h3>Dressings & Autres</h3>
+            <p>Solutions de rangement haut de gamme, garde-robes et mobilier d'intérieur sur mesure.</p>
+            <div class="btn-select">SÉLECTIONNER</div>
+        </a>
+    </div>
+</div>
+
+<footer>
+    &copy; 2026 Kaiser Ivory Coast — Excellence Allemande en Côte d'Ivoire.
+    <br><br>
+    <a href="home.html" style="color:var(--red); text-decoration:none;">← Retour à l'accueil</a>
+</footer>
+
+</body>
+</html>
