@@ -43,8 +43,8 @@
         .step.active .step-label { color:white; }
         .step-line { flex:1; height:1px; background:#333; margin:0 8px; }
 
-        /* CONTAINER */
-        .container { max-width:960px; margin:40px auto 160px; padding:0 20px; }
+        /* CONTAINER — padding-bottom is set by JS to match the fixed footer height */
+        .container { max-width:960px; margin:40px auto 0; padding:0 20px 180px; }
 
         /* SECTIONS */
         .form-section-title {
@@ -108,9 +108,9 @@
         .footer-action {
             position:fixed; bottom:0; left:0; right:0;
             background:white; border-top:2px solid #eee;
-            padding:16px 20px; z-index:100;
+            padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px)); z-index:100;
             box-shadow:0 -4px 20px rgba(0,0,0,0.1);
-            display:flex; align-items:center; justify-content:center; gap:16px;
+            display:flex; align-items:center; justify-content:center; gap:12px;
         }
         .btn-whatsapp {
             background:#25D366; color:white; border:none;
@@ -151,9 +151,13 @@
             .steps .step-label { display:none; }
             .section-box { padding:18px; }
             .input-grid { grid-template-columns:1fr; }
-            .container { margin:24px auto 160px; padding:0 14px; }
-            .footer-action { flex-wrap:wrap; gap:10px; }
-            .btn-whatsapp { max-width:100%; }
+            .container { margin:24px auto 0; padding:0 14px 220px; }
+            .footer-action {
+                flex-direction:column; align-items:stretch; gap:10px;
+                padding:12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+            }
+            .btn-back-mobile { display:none; }
+            .btn-photos, .btn-whatsapp { width:100%; max-width:100%; flex:none; }
         }
     </style>
 </head>
@@ -317,6 +321,17 @@
     const KAISER_WA_DIGITS  = '2250152689191';
     const KAISER_WA_DISPLAY = '+225 01 52 68 91 91';
 
+    // Keep form content above the fixed footer (footer height changes when photo button appears)
+    function updateFooterSpacer() {
+        const footer = document.querySelector('.footer-action');
+        const container = document.querySelector('.container');
+        if (footer && container) {
+            container.style.paddingBottom = (footer.offsetHeight + 32) + 'px';
+        }
+    }
+    window.addEventListener('resize', updateFooterSpacer);
+    window.addEventListener('load', updateFooterSpacer);
+
     // ── Photo selection, kept in our own array (not just input.files) so
     // individual photos can be removed after being added ──
     let selectedFiles = [];
@@ -351,7 +366,7 @@
             count.textContent = n === 1 ? '1 photo prête' : n + ' photos prêtes';
             zone.classList.add('has-files');
             document.getElementById('step2').classList.add('done');
-            shareBtn.style.display = 'inline-block';
+            shareBtn.style.display = 'block';
         } else {
             label.textContent = 'TÉLÉCHARGER DES PHOTOS';
             label.style.background = '';
@@ -382,36 +397,64 @@
             item.appendChild(btn);
             grid.appendChild(item);
         });
+
+        updateFooterSpacer();
     }
 
-    // ── Share the actual photo files (separate, optional step) ──
-    // WhatsApp gives no way for a website to both attach real files AND
-    // auto-pick the recipient at the same time — that's a platform limit,
-    // not something fixable in this code. This opens the device's native
-    // share sheet with the photos attached; the customer then picks
-    // WhatsApp and searches for the Kaiser number themselves.
-    function sharePhotos() {
+    // ── Share the actual photo files (optional retry if the main send step failed) ──
+    async function sharePhotos() {
         if (selectedFiles.length === 0) {
             showToast('⚠️ Aucune photo sélectionnée.', 'error');
             return;
         }
-        if (navigator.canShare && navigator.share && navigator.canShare({ files: selectedFiles })) {
-            const clientName = document.getElementById('cust-name').value.trim() || 'un client Kaiser';
-            navigator.share({
-                files: selectedFiles,
-                text: `Photos de cuisine — ${clientName}\n👉 Choisissez WhatsApp puis recherchez ${KAISER_WA_DISPLAY} (Kaiser Ivory Coast).`
-            }).catch(err => {
-                if (err && err.name !== 'AbortError') {
-                    showToast('⚠️ Le partage a échoué, réessayez.', 'error');
-                }
-            });
-        } else {
-            showToast('⚠️ Partage photo non supporté ici — joignez-les manuellement dans WhatsApp.', 'error');
+        const clientName = document.getElementById('cust-name').value.trim() || 'un client Kaiser';
+        try {
+            const ok = await shareSelectedPhotos(clientName);
+            if (!ok) {
+                showToast('⚠️ Partage photo non supporté ici — joignez-les manuellement dans WhatsApp.', 'error');
+            }
+        } catch (err) {
+            if (err && err.name !== 'AbortError') {
+                showToast('⚠️ Le partage a échoué, réessayez.', 'error');
+            }
         }
     }
 
+    function buildConfigMessage(sName, sWa, sBackup, sLocation, sLength, sWidth, sHeight, sStyle, sNotes, photoStatus) {
+        return (
+            `Bonjour Kaiser Ivory Coast !\n\n` +
+            `*🏗️ NOUVELLE DEMANDE DE CUISINE*\n` +
+            `━━━━━━━━━━━━━━━━━━━━━\n` +
+            `*👤 CLIENT :* ${sName}\n` +
+            `*📱 WHATSAPP :* ${sWa}\n` +
+            `*📞 SECOURS :* ${sBackup}\n` +
+            `*📍 LOCALISATION :* ${sLocation}\n\n` +
+            `*📐 DIMENSIONS :*\n` +
+            `• Longueur : ${sLength} cm\n` +
+            `• Largeur  : ${sWidth} cm\n` +
+            `• Hauteur  : ${sHeight} cm\n\n` +
+            `*🎨 STYLE :* ${sStyle}\n` +
+            `*📝 NOTES :* ${sNotes}\n` +
+            `*📷 PHOTOS :* ${photoStatus}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━\n` +
+            `Merci de me recontacter avec un devis.`
+        );
+    }
+
+    async function shareSelectedPhotos(clientName) {
+        if (selectedFiles.length === 0) return false;
+        if (!(navigator.canShare && navigator.share && navigator.canShare({ files: selectedFiles }))) {
+            return false;
+        }
+        await navigator.share({
+            files: selectedFiles,
+            text: `Photos cuisine — ${clientName}\n👉 Envoyez à Kaiser Ivory Coast : ${KAISER_WA_DISPLAY}`
+        });
+        return true;
+    }
+
     // ── Validate & send ──
-    function sendToWhatsapp() {
+    async function sendToWhatsapp() {
         let valid = true;
 
         // Reset errors
@@ -467,26 +510,27 @@
         const sStyle    = sanitize(document.getElementById('kitchen-style').value);
         const sNotes    = sanitize(document.getElementById('extra-notes').value.trim() || 'Aucune');
 
-        const numFiles  = selectedFiles.length;
-        const photoStatus = numFiles > 0 ? `OUI (${numFiles} photo${numFiles>1?'s':''} jointe${numFiles>1?'s':''})` : 'AUCUNE';
+        const numFiles = selectedFiles.length;
+        let photosSent = false;
+
+        if (numFiles > 0) {
+            showToast('📷 Partage des photos…', 'success');
+            try {
+                photosSent = await shareSelectedPhotos(sName);
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+                showToast('⚠️ Photos non partagées — joignez-les manuellement dans WhatsApp.', 'error');
+            }
+        }
+
+        const photoStatus = numFiles === 0
+            ? 'AUCUNE'
+            : photosSent
+                ? `OUI (${numFiles} photo${numFiles > 1 ? 's' : ''} envoyée${numFiles > 1 ? 's' : ''} dans un message séparé)`
+                : `OUI (${numFiles} sélectionnée${numFiles > 1 ? 's' : ''} — veuillez les joindre manuellement)`;
 
         const msg = encodeURIComponent(
-            `Bonjour Kaiser Ivory Coast !\n\n` +
-            `*🏗️ NOUVELLE DEMANDE DE CUISINE*\n` +
-            `━━━━━━━━━━━━━━━━━━━━━\n` +
-            `*👤 CLIENT :* ${sName}\n` +
-            `*📱 WHATSAPP :* ${sWa}\n` +
-            `*📞 SECOURS :* ${sBackup}\n` +
-            `*📍 LOCALISATION :* ${sLocation}\n\n` +
-            `*📐 DIMENSIONS :*\n` +
-            `• Longueur : ${sLength} cm\n` +
-            `• Largeur  : ${sWidth} cm\n` +
-            `• Hauteur  : ${sHeight} cm\n\n` +
-            `*🎨 STYLE :* ${sStyle}\n` +
-            `*📝 NOTES :* ${sNotes}\n` +
-            `*📷 PHOTOS :* ${photoStatus}\n` +
-            `━━━━━━━━━━━━━━━━━━━━━\n` +
-            `Merci de me recontacter avec un devis.`
+            buildConfigMessage(sName, sWa, sBackup, sLocation, sLength, sWidth, sHeight, sStyle, sNotes, photoStatus)
         );
 
         // Update progress
@@ -494,10 +538,9 @@
         document.getElementById('step4').classList.add('active');
         showToast('✅ Redirection vers WhatsApp…', 'success');
 
-        // Always goes straight to the Kaiser number automatically — no picker, no interruption.
         setTimeout(() => {
             window.location.href = `https://wa.me/${KAISER_WA_DIGITS}?text=${msg}`;
-        }, 800);
+        }, photosSent ? 400 : 800);
     }
 
     // Update progress steps on scroll / field fill
