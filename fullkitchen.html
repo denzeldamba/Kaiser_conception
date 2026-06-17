@@ -89,6 +89,21 @@
         .upload-btn-label:hover { background:var(--red); }
         #file-count { font-size:12px; color:#555; margin-top:10px; }
 
+        /* PHOTO PREVIEWS */
+        .photo-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+        .photo-thumb {
+            position:relative; width:72px; height:72px; border-radius:4px;
+            overflow:hidden; border:1px solid #ddd; background:#eee;
+        }
+        .photo-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+        .photo-remove {
+            position:absolute; top:2px; right:2px; width:20px; height:20px;
+            border-radius:50%; background:rgba(0,0,0,0.65); color:white;
+            border:none; font-size:11px; cursor:pointer; padding:0;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .photo-remove:hover { background:var(--red); }
+
         /* FOOTER ACTION */
         .footer-action {
             position:fixed; bottom:0; left:0; right:0;
@@ -105,6 +120,13 @@
             flex:1; max-width:480px;
         }
         .btn-whatsapp:hover { background:#1da851; }
+        .btn-photos {
+            background:var(--black); color:white; border:none;
+            padding:14px 22px; font-family:'Montserrat',sans-serif;
+            font-weight:700; font-size:12px; cursor:pointer;
+            text-transform:uppercase; letter-spacing:1px; transition:0.2s;
+        }
+        .btn-photos:hover { background:var(--red); }
         .btn-back-mobile {
             background:var(--gray); color:var(--black); border:1px solid #ddd;
             padding:14px 20px; font-family:'Montserrat',sans-serif;
@@ -218,10 +240,11 @@
     <div class="upload-zone" id="uploadZone" onclick="document.getElementById('kitchenPhoto').click()">
         <div class="upload-icon">📷</div>
         <p>Prenez des photos de votre cuisine actuelle (angles différents) pour nous aider à mieux vous conseiller.</p>
-        <input type="file" id="kitchenPhoto" hidden accept="image/*" multiple onchange="updateUploadStatus()">
+        <input type="file" id="kitchenPhoto" hidden accept="image/*" multiple onchange="handleFileSelect(event)">
         <label class="upload-btn-label" id="upload-label">TÉLÉCHARGER DES PHOTOS</label>
         <p id="file-count"></p>
     </div>
+    <div class="photo-grid" id="photoGrid"></div>
 
     <!-- SECTION 3 -->
     <h2 class="form-section-title"><span>3.</span> COORDONNÉES DU CLIENT</h2>
@@ -257,6 +280,7 @@
 <!-- FOOTER -->
 <div class="footer-action">
     <button class="btn-back-mobile" onclick="window.location.href='home.html'">← RETOUR</button>
+    <button class="btn-photos" id="btn-share-photos" onclick="sharePhotos()" style="display:none;">📷 PARTAGER MES PHOTOS</button>
     <button class="btn-whatsapp" onclick="sendToWhatsapp()">💬 ENVOYER MA CONFIGURATION VIA WHATSAPP</button>
 </div>
 
@@ -289,25 +313,105 @@
         setTimeout(() => t.className = 'toast', 3000);
     }
 
-    // ── File upload ──
-    function updateUploadStatus() {
-        const input = document.getElementById('kitchenPhoto');
-        const zone  = document.getElementById('uploadZone');
-        const label = document.getElementById('upload-label');
-        const count = document.getElementById('file-count');
-        const n = input.files.length;
+    // ── Kaiser's receiving WhatsApp number ──
+    const KAISER_WA_DIGITS  = '2250152689191';
+    const KAISER_WA_DISPLAY = '+225 01 52 68 91 91';
+
+    // ── Photo selection, kept in our own array (not just input.files) so
+    // individual photos can be removed after being added ──
+    let selectedFiles = [];
+
+    function handleFileSelect(event) {
+        Array.from(event.target.files).forEach(file => {
+            const isDuplicate = selectedFiles.some(f =>
+                f.name === file.name && f.size === file.size && f.lastModified === file.lastModified
+            );
+            if (!isDuplicate) selectedFiles.push(file);
+        });
+        event.target.value = ''; // reset so picking the same file again still fires 'change'
+        renderPhotos();
+    }
+
+    function removePhoto(index) {
+        selectedFiles.splice(index, 1);
+        renderPhotos();
+    }
+
+    function renderPhotos() {
+        const zone     = document.getElementById('uploadZone');
+        const label    = document.getElementById('upload-label');
+        const count    = document.getElementById('file-count');
+        const grid     = document.getElementById('photoGrid');
+        const shareBtn = document.getElementById('btn-share-photos');
+        const n = selectedFiles.length;
+
         if (n > 0) {
-            label.textContent = 'PHOTOS SÉLECTIONNÉES ✓';
+            label.textContent = "AJOUTER D'AUTRES PHOTOS";
             label.style.background = '#25D366';
             count.textContent = n === 1 ? '1 photo prête' : n + ' photos prêtes';
             zone.classList.add('has-files');
-            // Update progress
             document.getElementById('step2').classList.add('done');
+            shareBtn.style.display = 'inline-block';
+        } else {
+            label.textContent = 'TÉLÉCHARGER DES PHOTOS';
+            label.style.background = '';
+            count.textContent = '';
+            zone.classList.remove('has-files');
+            document.getElementById('step2').classList.remove('done');
+            shareBtn.style.display = 'none';
+        }
+
+        grid.innerHTML = '';
+        selectedFiles.forEach((file, i) => {
+            const item = document.createElement('div');
+            item.className = 'photo-thumb';
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.alt = 'Photo ' + (i + 1);
+            img.onload = () => URL.revokeObjectURL(img.src);
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'photo-remove';
+            btn.setAttribute('aria-label', 'Retirer cette photo');
+            btn.textContent = '✕';
+            btn.onclick = (e) => { e.stopPropagation(); removePhoto(i); };
+
+            item.appendChild(img);
+            item.appendChild(btn);
+            grid.appendChild(item);
+        });
+    }
+
+    // ── Share the actual photo files (separate, optional step) ──
+    // WhatsApp gives no way for a website to both attach real files AND
+    // auto-pick the recipient at the same time — that's a platform limit,
+    // not something fixable in this code. This opens the device's native
+    // share sheet with the photos attached; the customer then picks
+    // WhatsApp and searches for the Kaiser number themselves.
+    function sharePhotos() {
+        if (selectedFiles.length === 0) {
+            showToast('⚠️ Aucune photo sélectionnée.', 'error');
+            return;
+        }
+        if (navigator.canShare && navigator.share && navigator.canShare({ files: selectedFiles })) {
+            const clientName = document.getElementById('cust-name').value.trim() || 'un client Kaiser';
+            navigator.share({
+                files: selectedFiles,
+                text: `Photos de cuisine — ${clientName}\n👉 Choisissez WhatsApp puis recherchez ${KAISER_WA_DISPLAY} (Kaiser Ivory Coast).`
+            }).catch(err => {
+                if (err && err.name !== 'AbortError') {
+                    showToast('⚠️ Le partage a échoué, réessayez.', 'error');
+                }
+            });
+        } else {
+            showToast('⚠️ Partage photo non supporté ici — joignez-les manuellement dans WhatsApp.', 'error');
         }
     }
 
     // ── Validate & send ──
-    async function sendToWhatsapp() {
+    function sendToWhatsapp() {
         let valid = true;
 
         // Reset errors
@@ -363,7 +467,7 @@
         const sStyle    = sanitize(document.getElementById('kitchen-style').value);
         const sNotes    = sanitize(document.getElementById('extra-notes').value.trim() || 'Aucune');
 
-        const numFiles  = document.getElementById('kitchenPhoto').files.length;
+        const numFiles  = selectedFiles.length;
         const photoStatus = numFiles > 0 ? `OUI (${numFiles} photo${numFiles>1?'s':''} jointe${numFiles>1?'s':''})` : 'AUCUNE';
 
         const msg = encodeURIComponent(
@@ -388,79 +492,12 @@
         // Update progress
         document.getElementById('step3').classList.add('done');
         document.getElementById('step4').classList.add('active');
+        showToast('✅ Redirection vers WhatsApp…', 'success');
 
-        // ── Kaiser's receiving WhatsApp number ──
-        const KAISER_WA_DIGITS  = '2250152689191';
-        const KAISER_WA_DISPLAY = '+225 01 52 68 91 91';
-
-        const photoFiles = Array.from(document.getElementById('kitchenPhoto').files);
-
-        // WhatsApp's "wa.me" link can only ever pre-fill TEXT — it has no
-        // mechanism to attach files to a message. The only way a browser can
-        // hand actual photo files to WhatsApp is the native Share API, which
-        // opens the device's share sheet (the customer still has to tap
-        // WhatsApp, then pick/search the Kaiser contact themselves — no
-        // website can pre-select a recipient for a file share).
-        if (photoFiles.length > 0 && navigator.canShare && navigator.share &&
-            navigator.canShare({ files: photoFiles })) {
-            try {
-                await navigator.share({
-                    files: photoFiles,
-                    text: buildPlainMessage() +
-                          `\n\n👉 Choisissez WhatsApp, puis recherchez ${KAISER_WA_DISPLAY} (Kaiser Ivory Coast).`
-                });
-                showToast(`✅ Choisissez WhatsApp puis ${KAISER_WA_DISPLAY}`, 'success');
-                return;
-            } catch (err) {
-                if (err && err.name === 'AbortError') {
-                    // Customer closed the share sheet — let them try again, don't redirect.
-                    return;
-                }
-                // Any other failure: fall through to the text-only link below.
-            }
-        } else if (photoFiles.length > 0) {
-            // Browser can't share files (common on desktop) — be upfront about it.
-            showToast('⚠️ Photos non jointes — ajoutez-les manuellement dans WhatsApp', 'error');
-        } else {
-            showToast('✅ Redirection vers WhatsApp…', 'success');
-        }
-
+        // Always goes straight to the Kaiser number automatically — no picker, no interruption.
         setTimeout(() => {
             window.location.href = `https://wa.me/${KAISER_WA_DIGITS}?text=${msg}`;
         }, 800);
-    }
-
-    // Plain (non-HTML-escaped) version of the message, used only for the
-    // native Share API text/caption — that's a system share sheet, not a
-    // web page, so it should never contain HTML-escaped characters.
-    function buildPlainMessage() {
-        const name     = document.getElementById('cust-name').value.trim();
-        const wa       = document.getElementById('cust-whatsapp').value.trim();
-        const backup   = document.getElementById('cust-backup').value.trim() || 'Non spécifié';
-        const location = document.getElementById('cust-location').value.trim();
-        const length   = document.getElementById('dim-length').value.trim();
-        const width    = document.getElementById('dim-width').value.trim();
-        const height   = document.getElementById('dim-height').value || 'Non spécifié';
-        const style    = document.getElementById('kitchen-style').value;
-        const notes    = document.getElementById('extra-notes').value.trim() || 'Aucune';
-        const numFiles = document.getElementById('kitchenPhoto').files.length;
-
-        return `Bonjour Kaiser Ivory Coast !\n\n` +
-            `*🏗️ NOUVELLE DEMANDE DE CUISINE*\n` +
-            `━━━━━━━━━━━━━━━━━━━━━\n` +
-            `*👤 CLIENT :* ${name}\n` +
-            `*📱 WHATSAPP :* ${wa}\n` +
-            `*📞 SECOURS :* ${backup}\n` +
-            `*📍 LOCALISATION :* ${location}\n\n` +
-            `*📐 DIMENSIONS :*\n` +
-            `• Longueur : ${length} cm\n` +
-            `• Largeur  : ${width} cm\n` +
-            `• Hauteur  : ${height} cm\n\n` +
-            `*🎨 STYLE :* ${style}\n` +
-            `*📝 NOTES :* ${notes}\n` +
-            `*📷 PHOTOS :* ${numFiles} photo${numFiles>1?'s':''} jointe${numFiles>1?'s':''} à ce message\n` +
-            `━━━━━━━━━━━━━━━━━━━━━\n` +
-            `Merci de me recontacter avec un devis.`;
     }
 
     // Update progress steps on scroll / field fill
